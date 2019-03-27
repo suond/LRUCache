@@ -39,17 +39,34 @@ class DynamicArray
   end
 
   def [](i)
-    a = i.abs
-    return nil if a > (count - 1)
+    # debugger
+    return nil if i >= count
+    return @store[i] if i > 0
+    offset = i + 1
+    return nil if offset.abs >= count
+    dup = count
+    while @store[dup].nil?
+      dup -= 1  
+    end
     if i < 0
-      return @store[count + i]
-    else
-      return @store[i]
+      return @store[dup + offset]
     end
   end
 
   def []=(i, val)
-    @store[i] = val
+    @store[i] = val if i > 0
+    while i > @count
+      push(nil)
+    end
+    
+    offset = i + 1
+    dup = count
+    while @store[dup].nil?
+      dup -= 1
+    end
+    if i < 0
+      @store[dup + offset] = val
+    end
   end
 
   def capacity
