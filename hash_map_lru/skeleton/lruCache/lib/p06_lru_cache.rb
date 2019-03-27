@@ -2,6 +2,7 @@ require_relative 'p05_hash_map'
 require_relative 'p04_linked_list'
 
 class LRUCache
+  attr_reader :map, :store, :max
   def initialize(max, prc)
     @map = HashMap.new
     @store = LinkedList.new
@@ -16,21 +17,24 @@ class LRUCache
   def get(key)
     if @map.include?(key)
       linkedlist = @map.get(key)
-      # linkedlist.first grabs the node
-      # resetting value of this node to point to a new node inside of @store
-      # the new node inside of @store holds a key (key inside of linkedlist.first.key)
-      # the value (prc.call(key))
-      # push into @store the node with key,prc.call(key)
-      node = linkedlist.first
-      
-      return @store.get(key)
+      update_node!(linkedlist)
+    elsif @map.count >= @max
+      eject!
+      calc!(key)
+    else
+      calc!(key)
     end
   end
 
   def to_s
-    'Map: ' + @map.to_s + '\n' + 'Store: ' + @store.to_s
+    'Map: ' + @map.to_s + '\\n' + 'Store: ' + @store.to_s
   end
 
+  def eject!
+    lru = @store.first
+    @store.remove(lru.key)
+    @map.delete(lru.key)
+  end
   private
 
   def calc!(key)
@@ -38,56 +42,14 @@ class LRUCache
     hashed_key = @prc.call(key)
     @store.append(key, hashed_key)
     @map.set(key, @store.last)
+    hashed_key
   end
 
   def update_node!(node)
     # suggested helper method; move a node to the end of the list
     @store.remove(node.key)
-    @store.append(node.key, node.value)
+    @store.append(node.key, node.val)
+    @map.set(node.key,@store.last)
   end
 
-  def eject!
-    lru = @store.last
-    @store.remove(lru.key)
-    @map.set(lru.key, nil)
-  end
 end
-
-# @map = [LinkedList => Node(key, Node(key,prc(key)))]
-# k1 Node(key, Node(key,prc(key))) 
-  # prev - @head (of the hashMap = @map)
-  # next - k2
-
-# t1 Node(key, prc(key)) [contained inside of k1]
-  # prev - @head (of the linkedlist = @store)
-  # next - t2
-                                  
-# k2 Node(key1, t2)
-  # prev - k1
-  # next - nil
-
-# t2 Node(key1, prc.call(key1)) [node contained inside of k2's val]
-  # prev - t1
-  # next nil
-
-#...
-
-# @map = [LinkedList(k1), Linkedlist(k2), LinkedList(k3)]
-#  max length for @map of 3
-# but we want to add a new key
-
-# t1 was least recently used, because its previous is head, so we know it was added
-# first, the @store follows a first in first out method of deletion (delinking)
-
-#  new key we want to push in, key4
-
-# k4 Node(key4, t4)
-  #  prev - k3
-  # next - nil
-
-# t4 Node(key4, prc.call(key4))
-  # prev - t3
-  # next nil
-
-# reassign the values of the k Nodes to be changed t nodes, so for instance
-# the node in k1's value would be t2

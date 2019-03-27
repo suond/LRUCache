@@ -81,13 +81,14 @@ describe DynamicArray do
     it "should shift off items from the beginning" do
       arr.push(1)
       arr.push(2)
-
+      #[1,2,nil]
       expect(arr.shift).to eq(1)
       expect(arr.count).to eq(1)
-
+      #[2,nil,nil]
       expect(arr.shift).to eq(2)
       expect(arr.count).to eq(0)
       expect(arr[0]).to be_nil
+      #[]
     end
 
     it "should return nil if nothing can be shifted" do
